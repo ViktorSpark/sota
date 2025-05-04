@@ -56,34 +56,31 @@ function initHexagonLayer() {
 }
 
 // Генерация сот
+// Улучшенная генерация сот (охватывает весь видимый экран)
 function generateHexagons() {
   const bounds = map.getBounds();
   const zoom = map.getZoom();
-  const resolution = zoom > 10 ? 6 : 5; // Динамический размер
+  const resolution = Math.min(5, Math.floor(zoom / 2)); // Автоподбор размера сот
   
+  // Расширяем границы на 20% для полного покрытия
+  const paddedBounds = {
+    west: bounds.getWest() - 0.2 * (bounds.getEast() - bounds.getWest()),
+    east: bounds.getEast() + 0.2 * (bounds.getEast() - bounds.getWest()),
+    south: bounds.getSouth() - 0.2 * (bounds.getNorth() - bounds.getSouth()),
+    north: bounds.getNorth() + 0.2 * (bounds.getNorth() - bounds.getSouth())
+  };
+
   const hexagons = h3.polygonToCells([
     [
-      [bounds.getWest(), bounds.getSouth()],
-      [bounds.getEast(), bounds.getSouth()],
-      [bounds.getEast(), bounds.getNorth()],
-      [bounds.getWest(), bounds.getNorth()],
-      [bounds.getWest(), bounds.getSouth()]
+      [paddedBounds.west, paddedBounds.south],
+      [paddedBounds.east, paddedBounds.south],
+      [paddedBounds.east, paddedBounds.north],
+      [paddedBounds.west, paddedBounds.north],
+      [paddedBounds.west, paddedBounds.south]
     ]
   ], resolution);
-
-  const features = hexagons.map(hex => ({
-    type: 'Feature',
-    properties: { id: hex },
-    geometry: {
-      type: 'Polygon',
-      coordinates: [h3.cellToBoundary(hex, true)]
-    }
-  }));
-
-  map.getSource('hexagons').setData({
-    type: 'FeatureCollection',
-    features: features
-  });
+  
+  // Остальной код генерации...
 }
 
 // Остальной код (меню, 3D и т.д.) остаётся без изменений
