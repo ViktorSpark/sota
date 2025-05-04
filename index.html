@@ -2,14 +2,36 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>SOTA - MapLibre</title>
+  <title>SOTA - 2D Natural Earth</title>
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   <!-- MapLibre -->
   <script src='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js'></script>
-  <link href='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css' rel='stylesheet' />
+  <link href='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css' rel='stylesheet'>
   <!-- H3 для шестиугольников -->
   <script src='https://unpkg.com/h3-js'></script>
-  <link rel='stylesheet' href='styles.css'>
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { width: 100%; height: 100vh; }
+    .menu {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: rgba(255,255,255,0.9);
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    .menu button {
+      margin: 3px;
+      padding: 8px 12px;
+      background: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
   <div class='menu'>
@@ -18,9 +40,6 @@
     <button id="btn-data">Данные</button>
   </div>
   <div id='map'></div>
-  <div class='map-controls'>
-    <button id="toggle-3d">3D</button>
-  </div>
   <script src='script.js'></script>
 </body>
 </html>
