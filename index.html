@@ -2,9 +2,13 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>SOTA Prototype</title>
+  <title>SOTA - MapLibre</title>
   <meta name='viewport' content='width=device-width, initial-scale=1'>
-  <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.css' rel='stylesheet' />
+  <!-- MapLibre -->
+  <script src='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js'></script>
+  <link href='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css' rel='stylesheet' />
+  <!-- H3 для шестиугольников -->
+  <script src='https://unpkg.com/h3-js'></script>
   <link rel='stylesheet' href='styles.css'>
 </head>
 <body>
@@ -17,8 +21,6 @@
   <div class='map-controls'>
     <button id="toggle-3d">3D</button>
   </div>
-  <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.js'></script>
-  <script src='https://unpkg.com/h3-js'></script>
   <script src='script.js'></script>
 </body>
 </html>
