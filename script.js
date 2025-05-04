@@ -1,11 +1,10 @@
-mapboxgl.accessToken = 'ваш_токен_mapbox'; // Замените на свой токен!
-
-const map = new mapboxgl.Map({
+// Конфигурация карты
+const map = new maplibregl.Map({
   container: 'map',
-  style: 'mapbox://styles/mapbox/satellite-v9',
+  style: 'https://demotiles.maplibre.org/style.json', // Бесплатный стиль
   center: [8.2275, 46.8182], // Швейцария
   zoom: 7,
-  pitch: 0
+  pitch: 0 // Начальный 2D-режим
 });
 
 let is3D = false;
@@ -13,7 +12,7 @@ let is3D = false;
 // Переключение 2D/3D
 document.getElementById('toggle-3d').addEventListener('click', () => {
   is3D = !is3D;
-  map.setPitch(is3D ? 60 : 0);
+  map.setPitch(is3D ? 45 : 0);
   document.getElementById('toggle-3d').textContent = is3D ? '2D' : '3D';
 });
 
@@ -30,7 +29,7 @@ function generateHexagons() {
     ]
   ], 7); // Уровень детализации (7 для Швейцарии)
 
-  // Добавление GeoJSON слоя
+  // Создание GeoJSON слоя
   const hexagonFeatures = hexagons.map(hex => {
     const coordinates = h3.cellToBoundary(hex, true);
     return {
@@ -43,26 +42,29 @@ function generateHexagons() {
     };
   });
 
+  // Добавление слоя на карту
   if (map.getLayer('hexagons')) {
     map.getSource('hexagons').setData({
       type: 'FeatureCollection',
       features: hexagonFeatures
     });
   } else {
+    map.addSource('hexagons', {
+      type: 'geojson',
+      data: {
+        type: 'FeatureCollection',
+        features: hexagonFeatures
+      }
+    });
+
     map.addLayer({
       id: 'hexagons',
       type: 'fill',
-      source: {
-        type: 'geojson',
-        data: {
-          type: 'FeatureCollection',
-          features: hexagonFeatures
-        }
-      },
+      source: 'hexagons',
       paint: {
-        'fill-color': '#888888',
-        'fill-opacity': 0.3,
-        'fill-outline-color': '#ff0000'
+        'fill-color': '#FF0000',
+        'fill-opacity': 0.2,
+        'fill-outline-color': '#FF0000'
       }
     });
   }
@@ -70,13 +72,13 @@ function generateHexagons() {
 
 // Клик по соте
 map.on('click', 'hexagons', (e) => {
-  new mapboxgl.Popup()
+  new maplibregl.Popup()
     .setLngLat(e.lngLat)
     .setHTML(`Сота ID: <strong>${e.features[0].properties.id}</strong>`)
     .addTo(map);
 });
 
-// Загрузка карты
+// Инициализация
 map.on('load', () => {
   generateHexagons();
   map.on('moveend', generateHexagons);
