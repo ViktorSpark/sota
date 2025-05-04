@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>SOTA - Детализация соты</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <script src='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js'></script>
+  <link href='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css' rel='stylesheet'>
+  <script src='https://unpkg.com/h3-js'></script>
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { width: 100%; height: 100vh; }
+    #back-button {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      padding: 8px 15px;
+      background: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <button id='back-button'>← Назад</button>
+  <div id='map'></div>
+  <script>
+    // Получаем параметры из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const hexId = urlParams.get('hex');
+    const centerLat = parseFloat(urlParams.get('lat'));
+    const centerLng = parseFloat(urlParams.get('lng'));
+
+    // Инициализация карты
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: 'https://demotiles.maplibre.org/style.json',
+      center: [centerLng, centerLat],
+      zoom: 15
+    });
+
+    // Отрисовка границ соты
+    function drawHexagon() {
+      const coordinates = h3.cellToBoundary(hexId, true);
+      
+      map.on('load', () => {
+        map.addSource('hexagon', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: {
+              type: 'Polygon',
+              coordinates: [coordinates]
+            }
+          }
+        });
+
+        map.addLayer({
+          id: 'hexagon-border',
+          type: 'line',
+          source: 'hexagon',
+          paint: {
+            'line-color': '#FF0000',
+            'line-width': 3
+          }
+        });
+
+        // Подгоняем карту под границы соты
+        const bounds = coordinates.reduce((bounds, coord) => {
+          return bounds.extend([coord[1], coord[0]]);
+        }, new maplibregl.LngLatBounds(coordinates[0].reverse(), coordinates[0].reverse()));
+
+        map.fitBounds(bounds, { padding: 20 });
+      });
+    }
+
+    // Кнопка "Назад"
+    document.getElementById('back-button').addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
+
+    drawHexagon();
+  </script>
+</body>
+</html>
