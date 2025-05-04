@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>SOTA - Выбор соты</title>
+  <title>SOTA - Выбор соты (Natural Earth)</title>
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   <script src='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js'></script>
   <link href='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css' rel='stylesheet'>
@@ -19,25 +19,53 @@
       color: white;
       padding: 10px;
       border-radius: 5px;
+      font-family: Arial, sans-serif;
+    }
+    .map-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
     }
   </style>
 </head>
 <body>
   <div id='info-panel'>Кликните по соте для выбора</div>
+  <div class='map-controls'>
+    <button id='reset-view'>Сбросить вид</button>
+  </div>
   <div id='map'></div>
   <script>
-    // Инициализация карты
+    // Инициализация карты с Natural Earth
     const map = new maplibregl.Map({
       container: 'map',
-      style: 'https://demotiles.maplibre.org/style.json',
+      style: {
+        "version": 8,
+        "sources": {
+          "natural-earth": {
+            "type": "raster",
+            "tiles": ["https://naturalearthtiles.org/{z}/{x}/{y}.png"],
+            "tileSize": 256,
+            "attribution": "© Natural Earth"
+          }
+        },
+        "layers": [{
+          "id": "nat-earth-layer",
+          "type": "raster",
+          "source": "natural-earth",
+          "minzoom": 0,
+          "maxzoom": 8
+        }]
+      },
       center: [8.2275, 46.8182],
-      zoom: 7
+      zoom: 5,
+      maxZoom: 8
     });
 
     let selectedHex = null;
-    const HEX_RESOLUTION = 7;
+    const HEX_RESOLUTION = 5; // Оптимально для Natural Earth
 
-    // Генерация всех видимых сот
+    // Генерация сот с учетом проекции Natural Earth
     function generateHexagons() {
       const bounds = map.getBounds();
       const hexagons = h3.polygonToCells([
@@ -76,8 +104,8 @@
           source: 'hexagons',
           paint: {
             'fill-color': '#FF0000',
-            'fill-opacity': 0.3,
-            'fill-outline-color': '#FFFFFF'
+            'fill-opacity': 0.4,
+            'fill-outline-color': '#FFFFFF',
           }
         });
       }
@@ -86,24 +114,37 @@
     // Обработчик клика по соте
     map.on('click', 'hexagons', (e) => {
       if (selectedHex === e.features[0].properties.id) {
-        // Второй клик - переход на детальную страницу
         const hexBoundary = h3.cellToBoundary(e.features[0].properties.id, true);
         const center = hexBoundary.reduce((acc, coord) => {
           return [acc[0] + coord[0], acc[1] + coord[1]];
         }, [0, 0]).map(v => v / hexBoundary.length);
         
-        window.location.href = `detail.html?hex=${e.features[0].properties.id}&lat=${center[1]}&lng=${center[0]}`;
+        window.open(`detail.html?hex=${e.features[0].properties.id}&lat=${center[1]}&lng=${center[0]}`, '_blank');
         return;
       }
       
       selectedHex = e.features[0].properties.id;
       generateHexagons();
-      document.getElementById('info-panel').textContent = `Выбрана сота: ${selectedHex}. Кликните ещё раз для детализации`;
+      document.getElementById('info-panel').textContent = 
+        `Выбрана сота: ${selectedHex}. Кликните ещё раз для детализации`;
     });
 
+    // Кнопка сброса
+    document.getElementById('reset-view').addEventListener('click', () => {
+      selectedHex = null;
+      generateHexagons();
+      map.flyTo({
+        center: [8.2275, 46.8182],
+        zoom: 5
+      });
+      document.getElementById('info-panel').textContent = 'Кликните по соте для выбора';
+    });
+
+    // Инициализация
     map.on('load', () => {
       generateHexagons();
       map.on('moveend', generateHexagons);
+      map.addControl(new maplibregl.NavigationControl());
     });
   </script>
 </body>
